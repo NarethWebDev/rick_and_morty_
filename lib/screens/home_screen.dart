@@ -6,6 +6,7 @@ import '../app_colors.dart';
 import '../models/character_model.dart';
 import '../provider/favorite_characters.dart';
 import '../widget/character_card.dart';
+import '../widget/status_filter.dart';   // ← NUEVO
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,16 +16,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String? _selectedStatus;   
+
   Future<List<Character>> fetchCharacters() async {
     final List<Character> all = [];
     int page = 1;
-
     try {
       while (true) {
         final res = await http.get(
           Uri.parse('https://rickandmortyapi.com/api/character?page=$page'),
         );
-
         if (res.statusCode != 200) break;
 
         final body = json.decode(res.body);
@@ -35,14 +36,19 @@ class _HomeScreenState extends State<HomeScreen> {
         );
 
         if (body['info']['next'] == null) break;
-
         page++;
       }
     } catch (e) {
       debugPrint('Error al conectar con la API: $e');
     }
-
     return all;
+  }
+
+  List<Character> _filter(List<Character> all) {
+    if (_selectedStatus == null) return all;
+    return all
+        .where((c) => c.status.toLowerCase() == _selectedStatus!.toLowerCase())
+        .toList();
   }
 
   @override
@@ -58,8 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const CircularProgressIndicator(
-                    color: AppColors.portalGreen,
-                    strokeWidth: 3,
+                    color: AppColors.portalGreen, strokeWidth: 3,
                   ),
                   const SizedBox(height: 20),
                   Container(
@@ -67,28 +72,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppColors.portalGreen.withOpacity(0.08),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.portalGreen.withOpacity(0.2),
-                          blurRadius: 24,
-                          spreadRadius: 4,
-                        ),
-                      ],
+                      boxShadow: [BoxShadow(
+                        color: AppColors.portalGreen.withOpacity(0.2),
+                        blurRadius: 24, spreadRadius: 4,
+                      )],
                     ),
                     child: const Icon(
                       Icons.travel_explore_rounded,
-                      size: 52,
-                      color: AppColors.portalGreen,
+                      size: 52, color: AppColors.portalGreen,
                     ),
                   ),
                   const SizedBox(height: 20),
                   const Text(
                     'ABRIENDO PORTAL...',
                     style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.portalGreen,
-                      letterSpacing: 3,
+                      fontSize: 14, fontWeight: FontWeight.w800,
+                      color: AppColors.portalGreen, letterSpacing: 3,
                     ),
                   ),
                 ],
@@ -110,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
 
-          final characters = snapshot.data!;
+          final filtered = _filter(snapshot.data!);
 
           final favorites = context.watch<FavoriteCharacters>();
 
