@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'app_colors.dart';
 import 'components/rm_appbar.dart';
+import 'components/rm_footer.dart';
 import 'components/rm_navbar.dart';
 import 'screens/home_screen.dart';
 import 'screens/favorites_screen.dart';
@@ -65,15 +66,18 @@ class _AppShellState extends State<_AppShell> {
       appBar: const RMAppBar(),
 
       // ── Contenido: mantiene estado al cambiar de tab ───────────────────
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
 
-      // ── Navbar inferior ────────────────────────────────────────────────
-      bottomNavigationBar: RMNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+      // ── Navbar inferior + Footer ────────────────────────────────────────
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RMNavBar(
+            currentIndex: _currentIndex,
+            onTap: (index) => setState(() => _currentIndex = index),
+          ),
+          const RMFooter(),
+        ],
       ),
     );
   }
