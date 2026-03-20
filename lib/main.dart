@@ -62,13 +62,13 @@ class _AppShellState extends State<_AppShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // ── AppBar superior con logo oficial ───────────────────────────────
       appBar: const RMAppBar(),
 
-      // ── Contenido: mantiene estado al cambiar de tab ───────────────────
-      body: IndexedStack(index: _currentIndex, children: _screens),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens
+      ),
 
-      // ── Navbar inferior + Footer ────────────────────────────────────────
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

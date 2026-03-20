@@ -1,58 +1,127 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../app_colors.dart';
+import '../models/character_model.dart';
+import '../widget/character_card.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  Future<List<Character>> fetchCharacters() async {
+    final List<Character> all = [];
+    int page = 1;
+
+    try {
+      while (true) {
+        final res = await http.get(
+          Uri.parse('https://rickandmortyapi.com/api/character?page=$page'),
+        );
+
+        if (res.statusCode != 200) break;
+
+        final body    = json.decode(res.body);
+        final results = body['results'] as List<dynamic>;
+
+        all.addAll(results.map((j) => Character.fromJson(j as Map<String, dynamic>)));
+
+        if (body['info']['next'] == null) break;
+
+        page++;
+      }
+    } catch (e) {
+      debugPrint('Error al conectar con la API: $e');
+    }
+
+    return all;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: AppColors.spaceDark,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Ícono con glow portal
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.portalGreen.withOpacity(0.08),
-                border: Border.all(
-                  color: AppColors.portalGreen.withOpacity(0.3),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.portalGreen.withOpacity(0.2),
-                    blurRadius: 24,
-                    spreadRadius: 4,
+      child: FutureBuilder<List<Character>>(
+        future: fetchCharacters(),
+        builder: (context, snapshot) {
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(
+                    color: AppColors.portalGreen,
+                    strokeWidth: 3,
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.portalGreen.withOpacity(0.08),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.portalGreen.withOpacity(0.2),
+                          blurRadius: 24,
+                          spreadRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.travel_explore_rounded,
+                      size: 52,
+                      color: AppColors.portalGreen,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'ABRIENDO PORTAL...',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.portalGreen,
+                      letterSpacing: 3,
+                    ),
                   ),
                 ],
               ),
-              child: const Icon(
-                Icons.travel_explore_rounded,
-                size: 52,
-                color: AppColors.portalGreen,
+            );
+          }
+
+          if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(
+              child: Text(
+                'ERROR AL CARGAR EL MULTIVERSO',
+                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
               ),
+            );
+          }
+
+          final characters = snapshot.data!;
+
+          return GridView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              childAspectRatio: 0.70,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
             ),
-            const SizedBox(height: 20),
-            const Text(
-              'EXPLORAR',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-                letterSpacing: 3,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Aquí irá el listado de personajes',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-            ),
-          ],
-        ),
+            itemCount: characters.length,
+            itemBuilder: (context, index) {
+              return CharacterCard(
+                character: characters[index],
+                onTap: () {
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }
