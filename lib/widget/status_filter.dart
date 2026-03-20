@@ -24,10 +24,10 @@ class StatusFilterBar extends StatelessWidget {
 
   String _label(String? s) {
     switch (s?.toLowerCase()) {
-      case 'alive':   return '🟢  Vivo';
-      case 'dead':    return '🔴  Muerto';
-      case 'unknown': return '🟡  Desconocido';
-      default:        return '🌀  Todos';
+      case 'alive':   return 'Vivos';
+      case 'dead':    return 'Muertos';
+      case 'unknown': return 'Desconocidos';
+      default:        return 'Todos';
     }
   }
 

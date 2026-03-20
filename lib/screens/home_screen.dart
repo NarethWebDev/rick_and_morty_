@@ -6,7 +6,7 @@ import '../app_colors.dart';
 import '../models/character_model.dart';
 import '../provider/favorite_characters.dart';
 import '../widget/character_card.dart';
-import '../widget/status_filter.dart';   // ← NUEVO
+import '../widget/status_filter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? _selectedStatus;   
+  String? _selectedStatus;
 
   Future<List<Character>> fetchCharacters() async {
     final List<Character> all = [];
@@ -28,12 +28,9 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         if (res.statusCode != 200) break;
 
-        final body = json.decode(res.body);
+        final body    = json.decode(res.body);
         final results = body['results'] as List<dynamic>;
-
-        all.addAll(
-          results.map((j) => Character.fromJson(j as Map<String, dynamic>)),
-        );
+        all.addAll(results.map((j) => Character.fromJson(j as Map<String, dynamic>)));
 
         if (body['info']['next'] == null) break;
         page++;
@@ -53,11 +50,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final favorites = context.watch<FavoriteCharacters>();
+
     return Container(
       color: AppColors.spaceDark,
       child: FutureBuilder<List<Character>>(
         future: fetchCharacters(),
         builder: (context, snapshot) {
+
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
               child: Column(
@@ -95,43 +95,72 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
 
-          if (snapshot.hasError ||
-              !snapshot.hasData ||
-              snapshot.data!.isEmpty) {
+          if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
-              child: Text(
-                'ERROR AL CARGAR EL MULTIVERSO',
-                style: TextStyle(
-                  color: Colors.redAccent,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Text('ERROR AL CARGAR EL MULTIVERSO',
+                  style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
             );
           }
 
           final filtered = _filter(snapshot.data!);
 
-          final favorites = context.watch<FavoriteCharacters>();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
 
-          return GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              childAspectRatio: 0.70,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-            ),
-            itemCount: characters.length,
-            itemBuilder: (context, index) {
-              final character = characters[index];
+              // Chips de filtro
+              const SizedBox(height: 12),
+              StatusFilterBar(
+                selectedStatus: _selectedStatus,
+                onStatusChanged: (s) => setState(() => _selectedStatus = s),
+              ),
 
-              return CharacterCard(
-                character: character,
-                isFavorite: favorites.isFavorite(character),
-                onFavoriteToggle: () => favorites.toggle(character),
-                onTap: () {},
-              );
-            },
+              // Contador
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 8, 14, 2),
+                child: Text(
+                  '${filtered.length} personajes',
+                  style: const TextStyle(
+                    color: Colors.white38, fontSize: 11, letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+
+              // Grilla
+              Expanded(
+                child: filtered.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Text('👽', style: TextStyle(fontSize: 44)),
+                            SizedBox(height: 12),
+                            Text('Sin personajes en este estado',
+                                style: TextStyle(color: Colors.white38, fontSize: 13)),
+                          ],
+                        ),
+                      )
+                    : GridView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 4,
+                          childAspectRatio: 0.70,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                        ),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) {
+                          final c = filtered[index];
+                          return CharacterCard(
+                            character: c,
+                            isFavorite: favorites.isFavorite(c),
+                            onFavoriteToggle: () => favorites.toggle(c),
+                            onTap: () {},
+                          );
+                        },
+                      ),
+              ),
+            ],
           );
         },
       ),
