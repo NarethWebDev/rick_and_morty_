@@ -24,35 +24,61 @@ class RMFooter extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Logo/Title
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: 'Rick And ',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppColors.rickBlue,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                  ),
+          // Logo/Title con personajes
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundImage: NetworkImage(
+                  'https://rickandmortyapi.com/api/character/avatar/1.jpeg',
                 ),
-                TextSpan(
-                  text: 'Morty',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppColors.portalGreen,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                  ),
+                backgroundColor: AppColors.navbarBg,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Rick',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: AppColors.rickBlue,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'And',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'Morty',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: AppColors.portalGreen,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(width: 1),
+              CircleAvatar(
+                radius: 14,
+                backgroundImage: NetworkImage(
+                  'https://rickandmortyapi.com/api/character/avatar/2.jpeg',
+                ),
+                backgroundColor: AppColors.navbarBg,
+              ),
+            ],
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 1),
 
           // Custom text or description
           Text(
-            customText ??
-                'observa los personajes de la serie',
+            customText ?? 'observa los personajes de la serie',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.textSecondary,
@@ -61,8 +87,7 @@ class RMFooter extends StatelessWidget {
           ),
           const SizedBox(height: 3),
 
-          // Quick links
-          const SizedBox(height: 3),
+
 
           // Divider
           Container(
@@ -85,4 +110,3 @@ class RMFooter extends StatelessWidget {
     );
   }
 }
-
