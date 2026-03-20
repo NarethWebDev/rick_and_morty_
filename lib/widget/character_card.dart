@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import '../models/character_model.dart';
 
 class CharacterCard extends StatefulWidget {
-  final Character    character;
+  final Character character;
   final VoidCallback onTap;
+  final bool isFavorite;
+  final VoidCallback onFavoriteToggle;
 
   const CharacterCard({
     super.key,
     required this.character,
     required this.onTap,
+    required this.isFavorite,
+    required this.onFavoriteToggle,
   });
 
   @override
@@ -17,7 +21,6 @@ class CharacterCard extends StatefulWidget {
 
 class _CharacterCardState extends State<CharacterCard>
     with SingleTickerProviderStateMixin {
-
   late final AnimationController _ctrl = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 110),
@@ -26,21 +29,30 @@ class _CharacterCardState extends State<CharacterCard>
   )..value = 1.0;
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'alive':   return const Color(0xFF39FF14);
-      case 'dead':    return const Color(0xFFFF4500);
-      default:        return const Color(0xFFFFD700);
+      case 'alive':
+        return const Color(0xFF39FF14);
+      case 'dead':
+        return const Color(0xFFFF4500);
+      default:
+        return const Color(0xFFFFD700);
     }
   }
 
   String _statusLabel(String status) {
     switch (status.toLowerCase()) {
-      case 'alive':   return 'Vivo';
-      case 'dead':    return 'Muerto';
-      default:        return 'Desc.';
+      case 'alive':
+        return 'Vivo';
+      case 'dead':
+        return 'Muerto';
+      default:
+        return 'Desc.';
     }
   }
 
@@ -49,9 +61,12 @@ class _CharacterCardState extends State<CharacterCard>
     final color = _statusColor(widget.character.status);
 
     return GestureDetector(
-      onTapDown:   (_) => _ctrl.reverse(),
-      onTapUp:     (_) { _ctrl.forward(); widget.onTap(); },
-      onTapCancel: ()  => _ctrl.forward(),
+      onTapDown: (_) => _ctrl.reverse(),
+      onTapUp: (_) {
+        _ctrl.forward();
+        widget.onTap();
+      },
+      onTapCancel: () => _ctrl.forward(),
       child: ScaleTransition(
         scale: _ctrl,
         child: Container(
@@ -71,92 +86,142 @@ class _CharacterCardState extends State<CharacterCard>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               Expanded(
                 flex: 8,
-                child: Stack(fit: StackFit.expand, children: [
-
-                  Hero(
-                    tag: 'char_${widget.character.id}',
-                    child: Image.network(
-                      widget.character.image,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (_, child, progress) {
-                        if (progress == null) return child;
-                        return Container(
-                          color: const Color(0xFF0F1A0F),
-                          child: Center(
-                            child: SizedBox(
-                              width: 18, height: 18,
-                              child: CircularProgressIndicator(
-                                color: color.withOpacity(0.5),
-                                strokeWidth: 1.5,
-                                value: progress.expectedTotalBytes != null
-                                    ? progress.cumulativeBytesLoaded /
-                                      progress.expectedTotalBytes!
-                                    : null,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Hero(
+                      tag: 'char_${widget.character.id}',
+                      child: Image.network(
+                        widget.character.image,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (_, child, progress) {
+                          if (progress == null) return child;
+                          return Container(
+                            color: const Color(0xFF0F1A0F),
+                            child: Center(
+                              child: SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  color: color.withOpacity(0.5),
+                                  strokeWidth: 1.5,
+                                  value: progress.expectedTotalBytes != null
+                                      ? progress.cumulativeBytesLoaded /
+                                            progress.expectedTotalBytes!
+                                      : null,
+                                ),
                               ),
                             ),
+                          );
+                        },
+                        errorBuilder: (_, __, ___) => Container(
+                          color: const Color(0xFF0F1A0F),
+                          child: const Center(
+                            child: Icon(
+                              Icons.broken_image,
+                              color: Colors.white24,
+                              size: 24,
+                            ),
                           ),
-                        );
-                      },
-                      errorBuilder: (_, __, ___) => Container(
-                        color: const Color(0xFF0F1A0F),
-                        child: const Center(
-                          child: Icon(Icons.broken_image, color: Colors.white24, size: 24),
                         ),
                       ),
                     ),
-                  ),
 
-                  Positioned(
-                    bottom: 0, left: 0, right: 0,
-                    child: Container(
-                      height: 48,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [Color(0xFF1C2B1A), Colors.transparent],
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        height: 48,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [Color(0xFF1C2B1A), Colors.transparent],
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
-                  Positioned(
-                    top: 5, right: 5,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.72),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: color.withOpacity(0.9), width: 1),
-                        boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 6)],
+                    Positioned(
+                      top: 5,
+                      left: 5,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.72),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: color.withOpacity(0.9),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: color.withOpacity(0.3),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 5,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(color: color, blurRadius: 4),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              _statusLabel(widget.character.status),
+                              style: TextStyle(
+                                color: color,
+                                fontSize: 7,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Container(
-                          width: 5, height: 5,
+                    ),
+
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: widget.onFavoriteToggle,
+                        child: Container(
+                          width: 28,
+                          height: 28,
                           decoration: BoxDecoration(
-                            color: color,
+                            color: Colors.black.withOpacity(0.6),
                             shape: BoxShape.circle,
-                            boxShadow: [BoxShadow(color: color, blurRadius: 4)],
+                          ),
+                          child: Icon(
+                            widget.isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: widget.isFavorite
+                                ? Colors.redAccent
+                                : Colors.white,
+                            size: 18,
                           ),
                         ),
-                        const SizedBox(width: 3),
-                        Text(
-                          _statusLabel(widget.character.status),
-                          style: TextStyle(
-                            color: color,
-                            fontSize: 7,   
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                      ]),
+                      ),
                     ),
-                  ),
-
-                ]),
+                  ],
+                ),
               ),
 
               Expanded(
@@ -193,7 +258,6 @@ class _CharacterCardState extends State<CharacterCard>
                   ),
                 ),
               ),
-
             ],
           ),
         ),
