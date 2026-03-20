@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../app_colors.dart';
 import '../models/character_model.dart';
+import '../provider/favorite_characters.dart';
 import '../widget/character_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -25,10 +27,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
         if (res.statusCode != 200) break;
 
-        final body    = json.decode(res.body);
+        final body = json.decode(res.body);
         final results = body['results'] as List<dynamic>;
 
-        all.addAll(results.map((j) => Character.fromJson(j as Map<String, dynamic>)));
+        all.addAll(
+          results.map((j) => Character.fromJson(j as Map<String, dynamic>)),
+        );
 
         if (body['info']['next'] == null) break;
 
@@ -48,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: FutureBuilder<List<Character>>(
         future: fetchCharacters(),
         builder: (context, snapshot) {
-
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
               child: Column(
@@ -93,16 +96,23 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
 
-          if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          if (snapshot.hasError ||
+              !snapshot.hasData ||
+              snapshot.data!.isEmpty) {
             return const Center(
               child: Text(
                 'ERROR AL CARGAR EL MULTIVERSO',
-                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             );
           }
 
           final characters = snapshot.data!;
+
+          final favorites = context.watch<FavoriteCharacters>();
 
           return GridView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -114,10 +124,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             itemCount: characters.length,
             itemBuilder: (context, index) {
+              final character = characters[index];
+
               return CharacterCard(
-                character: characters[index],
-                onTap: () {
-                },
+                character: character,
+                isFavorite: favorites.isFavorite(character),
+                onFavoriteToggle: () => favorites.toggle(character),
+                onTap: () {},
               );
             },
           );

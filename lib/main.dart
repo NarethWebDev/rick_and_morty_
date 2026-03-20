@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'app_colors.dart';
 import 'components/rm_appbar.dart';
 import 'components/rm_footer.dart';
 import 'components/rm_navbar.dart';
+import 'provider/favorite_characters.dart';
 import 'screens/home_screen.dart';
 import 'screens/favorites_screen.dart';
 import 'screens/info_screen.dart';
@@ -24,21 +26,24 @@ class RickAndMortyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Rick & Morty',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: AppColors.spaceDark,
-        colorScheme: const ColorScheme.dark(
-          primary: AppColors.portalGreen,
-          secondary: AppColors.rickBlue,
-          tertiary: AppColors.mortyYellow,
-          surface: AppColors.spaceCard,
+    return ChangeNotifierProvider(
+      create: (_) => FavoriteCharacters(),
+      child: MaterialApp(
+        title: 'Rick & Morty',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          brightness: Brightness.dark,
+          scaffoldBackgroundColor: AppColors.spaceDark,
+          colorScheme: const ColorScheme.dark(
+            primary: AppColors.portalGreen,
+            secondary: AppColors.rickBlue,
+            tertiary: AppColors.mortyYellow,
+            surface: AppColors.spaceCard,
+          ),
         ),
+        home: const _AppShell(),
       ),
-      home: const _AppShell(),
     );
   }
 }
@@ -64,10 +69,7 @@ class _AppShellState extends State<_AppShell> {
     return Scaffold(
       appBar: const RMAppBar(),
 
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
 
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,

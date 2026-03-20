@@ -1,5 +1,5 @@
 class Character {
-  final int    id;
+  final int id;
   final String name;
   final String status;
   final String species;
@@ -8,7 +8,7 @@ class Character {
   final String image;
   final String origin;
   final String location;
-  final int    episodeCount;
+  final int episodeCount;
 
   const Character({
     required this.id,
@@ -24,17 +24,65 @@ class Character {
   });
 
   factory Character.fromJson(Map<String, dynamic> json) {
+    final originRaw = json['origin'];
+    final locationRaw = json['location'];
+
+    String parseName(dynamic value) {
+      if (value is String) return value;
+      if (value is Map<String, dynamic>) {
+        final name = value['name'];
+        if (name is String) return name;
+      }
+      return '';
+    }
+
+    int parseEpisodeCount(dynamic value) {
+      if (value is int) return value;
+      if (value is String) {
+        final parsed = int.tryParse(value);
+        if (parsed != null) return parsed;
+      }
+      if (value is List) return value.length;
+      if (json['episode'] is List) return (json['episode'] as List).length;
+      return 0;
+    }
+
     return Character(
-      id:           json['id']      as int,
-      name:         json['name']    as String,
-      status:       json['status']  as String,
-      species:      json['species'] as String,
-      type:         (json['type']   as String?) ?? '',
-      gender:       json['gender']  as String,
-      image:        json['image']   as String,
-      origin:       (json['origin']   as Map<String, dynamic>)['name'] as String,
-      location:     (json['location'] as Map<String, dynamic>)['name'] as String,
-      episodeCount: (json['episode']  as List).length,
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id'].toString()) ?? 0,
+      name: json['name']?.toString() ?? '',
+      status: json['status']?.toString() ?? '',
+      species: json['species']?.toString() ?? '',
+      type: json['type']?.toString() ?? '',
+      gender: json['gender']?.toString() ?? '',
+      image: json['image']?.toString() ?? '',
+      origin: parseName(originRaw),
+      location: parseName(locationRaw),
+      episodeCount: parseEpisodeCount(json['episodeCount'] ?? json['episode']),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'status': status,
+      'species': species,
+      'type': type,
+      'gender': gender,
+      'image': image,
+      'origin': origin,
+      'location': location,
+      'episodeCount': episodeCount,
+    };
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Character && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
